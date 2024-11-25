@@ -69,19 +69,19 @@ spec:
 #            value: "1"
         workingDir: /vllm-workspace
         command: [ "python3" , "-m" , "vllm.entrypoints.openai.api_server" ]
-        args: [ "--model", "hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4","--tensor-parallel-size", "2", "--max-model-len", "4096" ]
+        args: [ "--model", "hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4","--tensor-parallel-size", "4", "--max-model-len", "4096" ]
         volumeMounts:
           - mountPath: /root/.cache/huggingface
             name: llm-cache
         resources:
           limits:
             cpu: 1000m
-            memory: 20Gi
-            nvidia.com/gpu: "2"
+            memory: 35Gi
+            nvidia.com/gpu: "4"
           requests:
             cpu: 500m
-            memory: 15Gi
-            nvidia.com/gpu: "2"
+            memory: 25Gi
+            nvidia.com/gpu: "4"
 ---
 
 apiVersion: v1
