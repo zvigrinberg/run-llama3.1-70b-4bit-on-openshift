@@ -38,6 +38,8 @@ metadata:
     app: llama3.1-70b-instruct
   name: llama3.1-70b-instruct
 spec:
+  strategy:
+    type: Recreate
   replicas: 1
   selector:
     matchLabels:
@@ -67,18 +69,18 @@ spec:
 #            value: "1"
         workingDir: /vllm-workspace
         command: [ "python3" , "-m" , "vllm.entrypoints.openai.api_server" ]
-        args: [ "--model", "hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4","--tensor-parallel-size", "4", "--max-model-len", "4096" ]
+        args: [ "--model", "hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4","--tensor-parallel-size", "2", "--max-model-len", "4096" ]
         volumeMounts:
           - mountPath: /root/.cache/huggingface
             name: llm-cache
         resources:
           limits:
-            cpu: 500m
-            memory: 8Gi
+            cpu: 1000m
+            memory: 20Gi
             nvidia.com/gpu: "2"
           requests:
-            cpu: 100m
-            memory: 1Gi
+            cpu: 500m
+            memory: 15Gi
             nvidia.com/gpu: "2"
 ---
 
