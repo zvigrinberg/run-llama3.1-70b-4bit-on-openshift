@@ -1,0 +1,160 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: llama3.1-70b-instruct-anyuid-scc
+rules:
+  - verbs:
+      - use
+    resources:
+      - securitycontextconstraints
+    resourceNames:
+      - anyuid
+      - hostnetwork
+    apiGroups:
+      - security.openshift.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: llm-70b
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: llama3.1-70b-instruct-anyuid-scc
+subjects:
+  - kind: ServiceAccount
+    name: llm-70b
+roleRef:
+  kind: Role
+  name: llama3.1-70b-instruct-anyuid-scc
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: llama3.1-70b-instruct
+  name: llama3.1-70b-instruct
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llama3.1-70b-instruct
+      inference: tgi
+  template:
+    metadata:
+      labels:
+        app: llama3.1-70b-instruct
+        inference: tgi
+    spec:
+      volumes:
+        - name: llm-cache
+          persistentVolumeClaim:
+            claimName: llm-cache
+        - name: shm-filesystem
+          emptyDir:
+            medium: "Memory"
+            sizeLimit: "1Gi"
+
+      tolerations:
+        - effect: NoSchedule
+          key: p4-gpu
+          operator: Exists
+      securityContext:
+        runAsUser: 0
+      serviceAccountName: llm-70b
+      containers:
+      - image: ghcr.io/huggingface/text-generation-inference:2.2.0
+        name: tgi-openai
+        command: ["bash","-c","pip install --upgrade huggingface_hub && huggingface-cli login --token $HF_TOKEN && /tgi-entrypoint.sh"]
+        env:
+          - name: MODEL_ID
+            value: hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4
+          - name: NUM_SHARD
+            value: "4"
+          - name: QUANTIZE
+            value: awq
+          - name: MAX_INPUT_TOKENS
+            value: "8191"
+          - name: MAX_TOTAL_TOKENS
+            value: "8192"
+          - name: HF_TOKEN
+            valueFrom:
+              secretKeyRef:
+                key: hf-token
+                name: hf-token-secret
+
+        workingDir: /usr/src
+        volumeMounts:
+          - mountPath: /data
+            name: llm-cache
+          - mountPath: /dev/shm
+            name: shm-filesystem
+            readOnly: false
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 35Gi
+            nvidia.com/gpu: "4"
+          requests:
+            cpu: 1500m
+            memory: 25Gi
+            nvidia.com/gpu: "4"
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: llm-cache
+  labels:
+    app: llama3.1-70b-instruct
+    inference: tgi
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: gp3-csi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+
+  labels:
+    app: llama3.1-70b-instruct
+  name: llama3-1-70b-instruct
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: llama3.1-70b-instruct
+    inference: tgi
+
+---
+
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    openshift.io/host.generated: "true"
+  labels:
+    app: llama3.1-70b-instruct
+    inference: tgi
+  name: llama3-1-70b-instruct
+  namespace: 70b-awq-tgi
+spec:
+  port:
+    targetPort: 80
+  to:
+    kind: Service
+    name: llama3-1-70b-instruct
+    weight: 100
