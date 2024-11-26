@@ -129,6 +129,7 @@ metadata:
 
   labels:
     app: llama3.1-70b-instruct
+    inference: tgi
   name: llama3-1-70b-instruct
 spec:
   ports:
@@ -137,7 +138,6 @@ spec:
       targetPort: 80
   selector:
     app: llama3.1-70b-instruct
-    inference: tgi
 
 ---
 
