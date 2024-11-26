@@ -10,5 +10,5 @@ oc new-project 70b-awq
 oc create -f deployment.yaml
 ```
 
-**Note: You can reduce the `tensor-parallel-size` to value of 2 ( and also the request and limits' gpus to 2), so it will be less memory intensive,
+**Note: You can reduce the `tensor-parallel-size` in the [`deployment.yaml`](./deployment.yaml) to value of 2 ( and also the request and limits' gpus to 2), so it will be less memory intensive,
 and I also experienced more quick response using this configuration.** 
