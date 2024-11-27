@@ -9,6 +9,7 @@ rules:
       - securitycontextconstraints
     resourceNames:
       - anyuid
+#      Any scc (even custom one ) with allowIPC: true will be appropriate
       - nvidia-mig-manager
     apiGroups:
       - security.openshift.io
@@ -45,7 +46,6 @@ spec:
   selector:
     matchLabels:
       app: llama3.1-70b-instruct
-      inference: vllm
   template:
     metadata:
       labels:
@@ -71,7 +71,7 @@ spec:
 #            value: "1"
         workingDir: /vllm-workspace
         command: [ "python3" , "-m" , "vllm.entrypoints.openai.api_server" ]
-        args: [ "--model", "hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4","--tensor-parallel-size", "4", "--max-model-len", "4096" ]
+        args: [ "--model", "hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4","--tensor-parallel-size", "2", "--max-model-len", "8192", "--max_num_seqs", "128" ]
         volumeMounts:
           - mountPath: /root/.cache/huggingface
             name: llm-cache
@@ -79,11 +79,11 @@ spec:
           limits:
             cpu: 1000m
             memory: 35Gi
-            nvidia.com/gpu: "4"
+            nvidia.com/gpu: "2"
           requests:
             cpu: 500m
             memory: 25Gi
-            nvidia.com/gpu: "4"
+            nvidia.com/gpu: "2"
 ---
 
 apiVersion: v1
