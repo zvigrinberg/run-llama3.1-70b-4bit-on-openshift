@@ -22,5 +22,5 @@ curl -X POST -H "Content-Type: application/json" ${LLM_SERVICE_URL}/v1/chat/comp
         "stream": false}'
 ```
 
-**Note: You can reduce the `tensor-parallel-size` in the [`deployment.yaml`](./deployment.yaml) to value of 2 ( and also the request and limits' gpus to 2), so it will be less memory intensive,
-and I also experienced more quick response using this configuration.** 
+**Note: You can enlarge the `tensor-parallel-size` in the [`deployment.yaml`](./deployment.yaml) to value of 4 ( and also the request and limits' gpus to 4), so it increase redundancy and free memory margins ( especially KV Cache memory),
+But personally I also experienced more quicker response using 2 GPU replicas, so this is better also in terms of memory usage and that you don't really need more than this probably** 
