@@ -2,3 +2,6 @@
 
 - For deploying Llama-3.1-70b using 4bit AWQ qunantization , using vLLM inference, [Click here](./llama3.1-70b-vllm/README.md)
 - For deploying Llama-3.1-70b using 4bit AWQ qunantization , using TGI(Huggin Face' Text Generation Interface) inference, [Click here](./llama3.1-70b-tgi/README.md)
+
+## References
+- https://huggingface.co/hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4
